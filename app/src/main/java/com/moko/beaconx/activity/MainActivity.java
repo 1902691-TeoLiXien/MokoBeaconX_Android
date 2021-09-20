@@ -126,7 +126,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             startScan();
         }
 
-        //post request code (self-added)
+//        //post request code (self-added)
 //        OkHttpClient okHttpClient = new OkHttpClient();
 //
 //        RequestBody formbody = new FormBody.Builder().add("value", "send this please").build();
@@ -172,38 +172,6 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 // open password notify and set passwrord
                 MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getLockState());
             }, 500);
-
-            //self added code
-            long time= System.currentTimeMillis();
-            android.util.Log.i("Time Class ", "this is the random string you supposed to get");
-
-            //post request code (self-added)
-            OkHttpClient okHttpClient = new OkHttpClient();
-
-            RequestBody formbody = new FormBody.Builder().add("value", "this is the random string you supposed to get").build();
-
-            Request request = new Request.Builder().url("http://54.179.69.26:5000/post/").post(formbody).build();
-            //Request request = new Request.Builder().url("http://54.179.69.26:5000/").build(); //this is working in getting request from the flask server
-            //Request request = new Request.Builder().url("http://192.168.1.10:5000/").build(); // this is working too but make sure must conenct under wifi
-            okHttpClient.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "Network not found", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
-                    });
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    TextView textView = findViewById(R.id.get_request);
-                    textView.setText(response.body().string());
-                    Toast.makeText(MainActivity.this, "POST request sent over", Toast.LENGTH_LONG).show();
-                }
-            });
         }
     }
 
