@@ -1,5 +1,7 @@
 package com.moko.beaconx.activity;
 
+import java.io.IOException;
+
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,12 +11,15 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.moko.beaconx.AppConstants;
@@ -45,6 +50,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +59,7 @@ import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -60,6 +67,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import com.moko.beaconx.entity.BeaconXiBeacon;
 
 
 public class MainActivity extends BaseActivity implements MokoScanDeviceCallback, BaseQuickAdapter.OnItemChildClickListener {
@@ -80,16 +96,19 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     private HashMap<String, BeaconXInfo> beaconXInfoHashMap;
     private ArrayList<BeaconXInfo> beaconXInfos;
     private BeaconXListAdapter adapter;
+    public BeaconXiBeacon iBeacon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         ButterKnife.bind(this);
         beaconXInfoHashMap = new HashMap<>();
         beaconXInfos = new ArrayList<>();
         adapter = new BeaconXListAdapter();
         adapter.replaceData(beaconXInfos);
+
         adapter.setOnItemChildClickListener(this);
         adapter.openLoadAnimation();
         rvDevices.setLayoutManager(new LinearLayoutManager(this));
@@ -102,9 +121,37 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
+
         if (animation == null) {
             startScan();
         }
+
+        //post request code (self-added)
+//        OkHttpClient okHttpClient = new OkHttpClient();
+//
+//        RequestBody formbody = new FormBody.Builder().add("value", "send this please").build();
+//
+//        Request request = new Request.Builder().url("http://192.168.1.10:5000/post/").post(formbody).build();
+//        //Request request = new Request.Builder().url("http://54.179.69.26:5000/").build(); //this is working in getting request from the flask server
+//        //Request request = new Request.Builder().url("http://192.168.1.10:5000/").build(); // this is working too but make sure must conenct under wifi
+//        okHttpClient.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(@NonNull Call call, @NonNull IOException e){
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Toast.makeText(MainActivity.this, "Network not found", Toast.LENGTH_LONG).show();
+//                        e.printStackTrace();
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+//                TextView textView = findViewById(R.id.get_request);
+//                textView.setText(response.body().string());
+//            }
+//        });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -125,6 +172,38 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 // open password notify and set passwrord
                 MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getLockState());
             }, 500);
+
+            //self added code
+            long time= System.currentTimeMillis();
+            android.util.Log.i("Time Class ", "this is the random string you supposed to get");
+
+            //post request code (self-added)
+            OkHttpClient okHttpClient = new OkHttpClient();
+
+            RequestBody formbody = new FormBody.Builder().add("value", "this is the random string you supposed to get").build();
+
+            Request request = new Request.Builder().url("http://54.179.69.26:5000/post/").post(formbody).build();
+            //Request request = new Request.Builder().url("http://54.179.69.26:5000/").build(); //this is working in getting request from the flask server
+            //Request request = new Request.Builder().url("http://192.168.1.10:5000/").build(); // this is working too but make sure must conenct under wifi
+            okHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Network not found", Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
+                        }
+                    });
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    TextView textView = findViewById(R.id.get_request);
+                    textView.setText(response.body().string());
+                    Toast.makeText(MainActivity.this, "POST request sent over", Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
 
@@ -263,6 +342,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             return;
         }
         beaconXInfoHashMap.put(beaconXInfo.mac, beaconXInfo);
+
     }
 
     @Override

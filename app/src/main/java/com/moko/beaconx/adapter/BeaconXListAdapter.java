@@ -3,15 +3,20 @@ package com.moko.beaconx.adapter;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.moko.beaconx.R;
+import com.moko.beaconx.activity.MainActivity;
 import com.moko.beaconx.entity.BeaconXDevice;
 import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.beaconx.entity.BeaconXTLM;
@@ -21,9 +26,18 @@ import com.moko.beaconx.entity.BeaconXiBeacon;
 import com.moko.beaconx.utils.BeaconXParser;
 import com.moko.support.log.LogModule;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * @Date 2018/1/16
@@ -44,7 +58,9 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
         helper.setText(R.id.tv_rssi, item.rssi + "");
         helper.addOnClickListener(R.id.tv_connect);
         helper.setText(R.id.tv_conn_state, "");
+        LogModule.i("hello");
         LogModule.i(item.toString());
+
         LinearLayout llData = helper.getView(R.id.ll_data);
         llData.removeAllViews();
         ArrayList<BeaconXInfo.ValidData> validDatas = new ArrayList<>(item.validDataHashMap.values());
@@ -61,6 +77,7 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
         });
         for (BeaconXInfo.ValidData validData : validDatas) {
             LogModule.i(validData.toString());
+
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_UID) {
                 llData.addView(createUIDView(BeaconXParser.getUID(validData.data)));
             }
@@ -151,11 +168,15 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
         TextView tv_uuid = view.findViewById(R.id.tv_uuid);
         TextView tv_major = view.findViewById(R.id.tv_major);
         TextView tv_minor = view.findViewById(R.id.tv_minor);
+        TextView tv_location = view.findViewById(R.id.tv_location);
         tv_tx_power.setText("0".equals(iBeacon.rangingData) ? String.format("RSSI@1m:%sdBm", iBeacon.rangingData) :
                 String.format("RSSI@1m:-%sdBm", iBeacon.rangingData));
+        LogModule.i("hello RSSI@1m:%sdBm");
+        LogModule.i(iBeacon.rangingData);
         tv_uuid.setText(iBeacon.uuid.toUpperCase());
         tv_major.setText(iBeacon.major);
         tv_minor.setText(iBeacon.minor);
+        tv_location.setText(iBeacon.minor);
         return view;
     }
 }
