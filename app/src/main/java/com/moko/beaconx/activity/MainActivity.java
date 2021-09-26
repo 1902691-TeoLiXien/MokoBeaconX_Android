@@ -405,11 +405,12 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                     startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
                     return;
                 }
+//                startScan();
                 if (animation == null) {
                     startScan();
                 } else {
                     mHandler.removeMessages(0);
-                    MokoSupport.getInstance().stopScanDevice();
+                    //MokoSupport.getInstance().stopScanDevice();
                 }
                 break;
             case R.id.iv_about:
@@ -488,12 +489,12 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         findViewById(R.id.iv_refresh).startAnimation(animation);
         beaconXInfoParseable = new BeaconXInfoParseableImpl();
         MokoSupport.getInstance().startScanDevice(this);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                MokoSupport.getInstance().stopScanDevice();
-            }
-        }, 1000 * 60);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                MokoSupport.getInstance().stopScanDevice();
+//            }
+//        }, 1000 * 60);
     }
 
     private String mPassword;

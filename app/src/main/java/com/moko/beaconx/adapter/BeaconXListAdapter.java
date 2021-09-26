@@ -65,17 +65,32 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
         LogModule.i(item.toString());
 
         //self added code
-        long time= System.currentTimeMillis();
+
+        //timestamp
+        int new_rssi = 0;
+        long time= System.currentTimeMillis() / 1000L;
+
         android.util.Log.i("Time Class ", String.valueOf(time));
+
+        if (item.rssi >= -80){
+            new_rssi = item.rssi;
+        }
+
+
+        ArrayList<String> ar = new ArrayList<String>();
+        ar.add(item.mac);
+//        ar.add(String.valueOf(new_rssi));
+        ar.add(String.valueOf(time));
+
 
         //post request code (self-added)
         OkHttpClient okHttpClient = new OkHttpClient();
 
-        RequestBody formbody = new FormBody.Builder().add("value", item.toString()).build();
+        RequestBody formbody = new FormBody.Builder().add("value", String.valueOf(ar)).build();
 
-        Request request = new Request.Builder().url("http://192.168.1.10:5000/post/").post(formbody).build();
-        //Request request = new Request.Builder().url("http://54.179.69.26:5000/").build(); //this is working in getting request from the flask server
-        //Request request = new Request.Builder().url("http://192.168.1.10:5000/").build(); // this is working too but make sure must conenct under wifi
+
+//        Request request = new Request.Builder().url("http://192.168.1.10:5000/post/").post(formbody).build();
+        Request request = new Request.Builder().url("http://54.179.69.26:5000/insertbeacon").post(formbody).build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e){
@@ -93,7 +108,13 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 //                TextView textView = findViewById(R.id.get_request);
 //                textView.setText(response.body().string());
 //                Toast.makeText(mContext.getApplicationContext(), "POST request sent over", Toast.LENGTH_LONG).show();
-                LogModule.i("POST request is sent over");
+                long endTime   = System.currentTimeMillis();
+                long totalTime = endTime - time;
+                Log.d("the start time is: ", String.valueOf(time));
+                Log.d("the end time is: ", String.valueOf(endTime));
+                Log.d("the response time is: ", String.valueOf(totalTime));
+                //LogModule.i(String.valueOf(totalTime));
+                LogModule.i("POST request is sent over 1");
             }
         });
 
@@ -112,6 +133,7 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
             }
         });
         for (BeaconXInfo.ValidData validData : validDatas) {
+            LogModule.i("this is the validData.toString())");
             LogModule.i(validData.toString());
 
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_UID) {
@@ -149,6 +171,7 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
                 } else {
                     helper.setText(R.id.tv_conn_state, "CON");
                 }
+                LogModule.i("beaconXDevice.toString()");
                 LogModule.i(beaconXDevice.toString());
             }
         }
